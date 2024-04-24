@@ -125,13 +125,13 @@ export class Atracao {
         let insertResult = false;
         let queryInsertAtracao: string;
         try {
-            if(!idHabitat) {
-                // Construção da query para inserir as informações de um Mamifero. A query irá retornar o ID gerado para o animal pelo banco de dados
+            if (!idHabitat) {
+                // Construção da query para inserir as informações de um Mamifero. A query irá retornar o ID gerado para o Atracao pelo banco de dados
                 queryInsertAtracao = `INSERT INTO atracao (nomeatracao) 
                                             VALUES 
                                             ('${atracao.getNomeAtracao().toUpperCase()}');`;
             } else {
-                // Construção da query para inserir as informações de um Mamifero. A query irá retornar o ID gerado para o animal pelo banco de dados
+                // Construção da query para inserir as informações de um Mamifero. A query irá retornar o ID gerado para o Atracao pelo banco de dados
                 queryInsertAtracao = `INSERT INTO atracao (nomeatracao, idhabitat) 
                                             VALUES 
                                             ('${atracao.getNomeAtracao().toUpperCase()}', ${idHabitat});`;
@@ -154,6 +154,67 @@ export class Atracao {
 
             // Caso a inserção no banco der algum erro, é restorno o valor FALSO para quem chamou a função
             return insertResult;
+        }
+    }
+
+    /**
+     * Remove uma atracao do banco de dados
+     * @param idAtracao ID da atracao a ser removida
+     * @returns **true** caso deletado, **false** caso erro na função
+     */
+    static async removerAtracao(idAtracao: number): Promise<Boolean> {
+        // Variável para controlar o resultado da função
+        let queryResult = false;
+
+        try {
+            // Query para deletar o atracao da tabela Atracao
+            const queryDeleteAtracao = `DELETE FROM atracao WHERE idAtracao=${idAtracao}`;
+
+            // Executando a query
+            await database.query(queryDeleteAtracao)
+                // Testar o resultado da query
+                .then((result) => {
+                    // Se o resultado for diferente de zero, a query foi executada com sucesso
+                    if (result.rowCount != 0) {
+                        // Se a query for executado com sucesso, agora irá remover o atracao tabela Atracao
+                        queryResult = true;
+                    }
+                })
+
+            // Retorna o resultado da função
+            return queryResult;
+            // Caso ocorra algum erro
+        } catch (error) {
+            // Exibe o erro no console
+            console.log(`Erro na consulta: ${error}`);
+            // Retorna a variável queryResult com valor FALSE
+            return queryResult;
+        }
+    }
+
+    static async atualizarAtracao(atracao: Atracao, idAtracao: number): Promise<Boolean> {
+        let queryResult = false;
+
+        try {
+            const queryUpdateAtracao = `UPDATE atracao SET
+                                            nomeAtracao='${atracao.getNomeAtracao().toUpperCase()}'
+                                            WHERE idAtracao=${idAtracao}`;
+            console.log('tentando executar a query');
+            
+            await database.query(queryUpdateAtracao)
+                .then((result) => {
+                    console.log('query execytada');
+                    
+                    if (result.rowCount !== 0) {
+                        console.log('mudança realizada');
+                        
+                        queryResult = true;
+                    }
+                })
+            return queryResult;
+        } catch (error) {
+            console.log(`Erro na consulta: ${error}`);
+            return queryResult;
         }
     }
 }

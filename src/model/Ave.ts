@@ -1,3 +1,4 @@
+import { query } from "express";
 import { Animal } from "./Animal";
 import { DatabaseModel } from "./DatabaseModel";
 import { Habitat } from "./Habitat";
@@ -59,7 +60,7 @@ export class Ave extends Animal {
      * 
      * @returns Lista com todos as aves cadastradas no banco de dados
      */
-    static async listarAves() {
+    static async listarAves(): Promise<Array<Ave> | string> {
         // Cria uma lista (array) vazia do tipo Ave
         const listaDeAves: Array<Ave> = [];
 
@@ -91,7 +92,7 @@ export class Ave extends Animal {
      * @param idHabitat Opcional - Id do habitat que será associado à ave
      * @returns **true** caso sucesso, **false** caso erro
      */
-    static async cadastrarAve(ave: Ave, idHabitat: number): Promise<any> {
+    static async cadastrarAve(ave: Ave, idHabitat: number): Promise<Boolean> {
         // Cria uma variável do tipo booleano para guardar o status do resultado da query
         let insertResult = false;
 
@@ -124,6 +125,76 @@ export class Ave extends Animal {
 
             // Caso a inserção no banco der algum erro, é restorno o valor FALSO para quem chamou a função
             return insertResult;
+        }
+    }
+
+    /**
+     * Remove um animal do banco de dados
+     * @param idAnimal ID do animal a ser removido
+     * @returns **true** caso deletado, **false** caso erro na função
+     */
+    static async removerAve(idAnimal: number): Promise<Boolean> {
+        // Variável para controlar o resultado da função
+        let queryResult = false;
+        
+        try {
+            // Query para deletar o animal da tabela animal_habitat
+            const queryDeleteAnimalHabitat = `DELETE FROM animal_habitat WHERE idanimal=${idAnimal}`;
+
+            // Executando a query
+            await database.query(queryDeleteAnimalHabitat)
+            // Testar o resultado da query
+            .then(async (result) => {
+                // Se o resultado for diferente de zero, a query foi executada com sucesso
+                if(result.rowCount != 0) {
+                    // Se a query for executado com sucesso, agora irá remover o animal tabela animal
+
+                    // Query para remover o animal da tabela animal
+                    const queryDeleteAnimal = `DELETE FROM animal WHERE idanimal=${idAnimal}`;
+                    // Executa a query
+                    await database.query(queryDeleteAnimal)
+                    // Testar o resultado da query
+                    .then((result) => {
+                        // Se o resultado for diferente de zero, a query foi executada com sucesso
+                        if(result.rowCount != 0) {
+                            // atribui o valor VERDADEIRO a queryResult
+                            queryResult = true;
+                        }
+                    })
+                }
+            })
+
+            // Retorna o resultado da função
+            return queryResult;
+        // Caso ocorra algum erro
+        } catch (error) {
+            // Exibe o erro no console
+            console.log(`Erro na consulta: ${error}`);
+            // Retorna a variável queryResult com valor FALSE
+            return queryResult;
+        }
+    }
+
+    static async atualizarAve(ave: Ave, idAve: number): Promise<Boolean> {
+        let queryResult = false;
+
+        try {
+            const queryUpdateAve = `UPDATE animal SET
+                                         nomeAnimal='${ave.getNomeAnimal().toUpperCase()}',
+                                         idadeAnimal=${ave.getIdadeAnimal()},
+                                         generoAnimal='${ave.getGeneroAnimal().toUpperCase()}',
+                                         envergadura=${ave.getEnvergadura()}
+                                    WHERE idAnimal=${idAve}`;
+        await database.query(queryUpdateAve)
+        .then((result) => {
+            if (result.rowCount !== 0) {
+                queryResult = true;
+            }
+        })
+        return queryResult;
+        } catch (error) {
+            console.log(`Erro na consulta: ${error}`);
+            return queryResult;
         }
     }
 }
