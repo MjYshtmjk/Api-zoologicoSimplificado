@@ -90,7 +90,7 @@ export class Ave extends Animal {
      * 
      * @param ave Objeto do tipo Ave
      * @param idHabitat Opcional - Id do habitat que será associado à ave
-     * @returns **true** caso sucesso, **false** caso erro
+     * @returns *true* caso sucesso, *false* caso erro
      */
     static async cadastrarAve(ave: Ave, idHabitat: number): Promise<Boolean> {
         // Cria uma variável do tipo booleano para guardar o status do resultado da query
@@ -131,7 +131,7 @@ export class Ave extends Animal {
     /**
      * Remove um animal do banco de dados
      * @param idAnimal ID do animal a ser removido
-     * @returns **true** caso deletado, **false** caso erro na função
+     * @returns *true* caso deletado, *false* caso erro na função
      */
     static async removerAve(idAnimal: number): Promise<Boolean> {
         // Variável para controlar o resultado da função
@@ -144,23 +144,16 @@ export class Ave extends Animal {
             // Executando a query
             await database.query(queryDeleteAnimalHabitat)
             // Testar o resultado da query
+
+            // Query para remover o animal da tabela animal
+            const queryDeleteAnimal = `DELETE FROM animal WHERE idanimal=${idAnimal}`;
+            // Executa a query
+            await database.query(queryDeleteAnimal)
             .then(async (result) => {
                 // Se o resultado for diferente de zero, a query foi executada com sucesso
                 if(result.rowCount != 0) {
-                    // Se a query for executado com sucesso, agora irá remover o animal tabela animal
-
-                    // Query para remover o animal da tabela animal
-                    const queryDeleteAnimal = `DELETE FROM animal WHERE idanimal=${idAnimal}`;
-                    // Executa a query
-                    await database.query(queryDeleteAnimal)
-                    // Testar o resultado da query
-                    .then((result) => {
-                        // Se o resultado for diferente de zero, a query foi executada com sucesso
-                        if(result.rowCount != 0) {
-                            // atribui o valor VERDADEIRO a queryResult
-                            queryResult = true;
-                        }
-                    })
+                    // atribui o valor VERDADEIRO a queryResult
+                    queryResult = true;
                 }
             })
 
@@ -175,25 +168,39 @@ export class Ave extends Animal {
         }
     }
 
+    /**
+     * Atualiza as informações de uma ave no banco de dados
+     * @param ave Objeto ave contendo as informações
+     * @param idAve id da ave
+     * @returns *true* caso a atualização seja feita, *false* caso ocorra algum problema
+     */
     static async atualizarAve(ave: Ave, idAve: number): Promise<Boolean> {
+        // Variável para controlar o resultado da função
         let queryResult = false;
 
         try {
+            // Query para alterar o animal da tabela animal
             const queryUpdateAve = `UPDATE animal SET
-                                         nomeAnimal='${ave.getNomeAnimal().toUpperCase()}',
-                                         idadeAnimal=${ave.getIdadeAnimal()},
-                                         generoAnimal='${ave.getGeneroAnimal().toUpperCase()}',
-                                         envergadura=${ave.getEnvergadura()}
+                                        nomeAnimal='${ave.getNomeAnimal().toUpperCase()}',
+                                        idadeAnimal=${ave.getIdadeAnimal()}
+                                        generoAnimal='${ave.getGeneroAnimal().toUpperCase()}',
+                                        envergadura=${ave.getEnvergadura()}
                                     WHERE idAnimal=${idAve}`;
-        await database.query(queryUpdateAve)
-        .then((result) => {
-            if (result.rowCount !== 0) {
-                queryResult = true;
-            }
-        })
-        return queryResult;
+            await database.query(queryUpdateAve)
+            // Testar o resultado da query
+            .then((result) => {
+                // Se o resultado for diferente de zero, a query foi executada com sucesso
+                if (result.rowCount !== 0) {      
+                    // atribui o valor VERDADEIRO a queryResult                 
+                    queryResult = true;
+                }
+            })
+            // Retorna o resultado da função
+            return queryResult;
         } catch (error) {
+            // Exibe o erro no console
             console.log(`Erro na consulta: ${error}`);
+            // Retorna a variável queryResult com valor FALSE
             return queryResult;
         }
     }
